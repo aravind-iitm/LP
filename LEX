@@ -1,0 +1,57 @@
+%{
+#include <stdio.h>
+#include <stdlib.h>
+%}
+
+DIGIT      [0-9]
+LETTER     [A-Za-z_]
+ID         {LETTER}({LETTER}|{DIGIT})*
+FLOAT      {DIGIT}+"."{DIGIT}+
+INT        {DIGIT}+
+PP         \#[^\n]*
+
+%%
+
+{PP}                { printf("Preprocessor directive          :%s\n", yytext); }
+
+"int"|"float"|"char"|"return"|"if"|"else"|"while"|"for"
+                    { printf("Keyword                 :%s\n", yytext); }
+
+{ID}                { printf("Identifier              :%s\n", yytext); }
+
+"++"|"--"|"=="|"!="|"<="|">="|"&&"|"||"|":="
+                    { printf("Operator                :%s\n", yytext); }
+
+"="|"+"|"-"|"*"|"/"|"%"|"!"|"<"|">"
+                    { printf("Operator                :%s\n", yytext); }
+
+{FLOAT}             { printf("Number                  :%s\n", yytext); }
+{INT}               { printf("Number                  :%s\n", yytext); }
+
+\"([^\\\"]|\\.)*\"  { printf("String Literal          :%s\n", yytext); }
+
+";"|","|"("|")"|"{"|"}"|"["|"]"
+                    { printf("Separator               :%s\n", yytext); }
+
+[ \t\n]+            { }
+
+.                   { }
+
+%%
+
+int main(int argc,char *argv[])
+{
+    if(argc < 2){
+        printf("Usage: %s <file>\n", argv[0]);
+        exit(1);
+    }
+    FILE *fp = fopen(argv[1], "r");
+    if(!fp){
+        perror("Cannot open file");
+        exit(1);
+    }
+    yyin = fp;
+    yylex();
+    fclose(fp);
+    return 0;
+}
