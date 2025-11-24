@@ -1,0 +1,134 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
+int main()
+{
+    char line[200],label[100],opcode[100],operand[100],code[100],mnemonic[100];
+    int start=0,locctr=0,found=0;
+
+    FILE *f1 ,*f2, *f3 ,*f4;
+
+    f1=fopen("input.txt","r");
+    f2=fopen("optab.txt","r");
+    f3=fopen("symtab.txt","w+");
+    f4=fopen("out.txt","w");
+
+    if(!f1||!f2||!f3||!f4)
+    {
+        printf("Error opening file");
+        return 0;
+    }
+
+    fgets(line,sizeof(line),f1);
+    int fields = sscanf(line ,"%s %s %s",label,opcode,operand);
+    if(fields==2)
+    {
+        strcpy(operand,opcode);
+        strcpy(opcode,label);
+        strcpy(label,"-");
+    }
+
+    if(strcmp(opcode,"START")==0)
+    {
+        start =strtol(operand,NULL,16);
+        locctr=start;
+        fprintf(f4, "\t%s\t%s\t%s\n",label,opcode,operand);
+        fgets(line,sizeof(line),f1);
+        fields=sscanf(line,"%s %s %s",label,opcode,operand);
+        if(fields== 2)
+        {
+            strcpy(operand,opcode);
+            strcpy(opcode,label);
+            strcpy(label,"-");
+        }
+
+    }
+
+    while(strcmp(opcode,"END")!=0)
+    {
+        fprintf(f4,"%X\t%s\t%s\t%s\n",locctr,label,opcode,operand);
+
+        if(strcmp(label,"-")!=0 && strcmp(label,"")!=0)
+        {
+            rewind(f3);
+            char lab[100];
+            int addr;
+            int duplicate = 0;
+
+            while (fscanf(f3, "%s %x", lab, &addr) != EOF)
+            {
+                if (strcmp(label, lab) == 0)
+                {
+                    printf("ERROR: Duplicate symbol %s\n", lab);
+                    duplicate = 1;
+                    break;
+                }
+            }
+
+            if (!duplicate)
+            {
+                fprintf(f3, "%s\t%X\n", label, locctr);
+            }
+
+        }
+
+        rewind(f2);
+
+        found=0;
+        while(fscanf(f2,"%s %s",code,mnemonic) !=EOF)
+        { 
+            if(strcmp(opcode,code)==0)
+            {
+                locctr+=3;
+                found=1;
+                break;
+            }
+        }
+        if(!found)
+        {
+            if(strcmp(opcode,"WORD")==0)
+            {
+                locctr+=3;
+            }
+            else if(strcmp(opcode,"RESW")==0)
+            {
+                locctr+=3*atoi(operand);
+            }
+            else if(strcmp(opcode,"RESB")==0)
+            {
+                locctr+=atoi(operand);
+            }
+            else if(strcmp(opcode,"BYTE")==0)
+            {
+                if(operand[0] =='C')
+                {
+                    locctr+=strlen(operand)-3;
+                }
+                else if(operand[0] =='X')
+                {
+                    locctr+=(strlen(operand)-3)/2;
+                }
+
+            }
+        }
+
+        fgets(line,sizeof(line),f1);
+        fields=sscanf(line,"%s %s %s",label,opcode,operand);
+        if(fields== 2)
+        {
+            strcpy(operand,opcode);
+            strcpy(opcode,label);
+            strcpy(label,"-");
+        }
+
+    }
+    fprintf(f4,"%X\t%s\t%s\t%s\n",locctr,label,opcode,operand);
+
+    fclose(f1);
+    fclose(f2);
+    fclose(f3);
+    fclose(f4);
+    
+    return 0;
+}
