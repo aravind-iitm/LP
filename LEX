@@ -1,57 +1,55 @@
 %{
 #include <stdio.h>
-#include <stdlib.h>
 %}
 
-DIGIT      [0-9]
-LETTER     [A-Za-z_]
-ID         {LETTER}({LETTER}|{DIGIT})*
-FLOAT      {DIGIT}+"."{DIGIT}+
-INT        {DIGIT}+
-PP         \#[^\n]*
+%%
+
+/* ---- PREPROCESSOR DIRECTIVE ---- */
+\#[^\n]*       
+        { printf("Preprocessor directive          :%s\n", yytext); }
+
+/* ---- KEYWORDS ---- */
+(int|float|char|double|if|else|while|for|do|switch|case|return)
+        { printf("Keyword                 :%s\n", yytext); }
+
+/* ---- IDENTIFIER ---- */
+[A-Za-z_][A-Za-z0-9_]* 
+        { printf("Identifier              :%s\n", yytext); }
+
+/* ---- NUMBER (int or float) ---- */
+[0-9]+(\.[0-9]+)?      
+        { printf("Number                  :%s\n", yytext); }
+
+/* ---- STRING LITERAL ---- */
+\"([^\\"]|\\.)*\"     
+        { printf("String Literal          :%s\n", yytext); }
+
+/* ---- OPERATORS ---- */
+(\+\+|--|==|!=|<=|>=|&&|\|\||\+=|-=|\*=|/=) 
+        { printf("Operator                :%s\n", yytext); }
+
+[+\-*/%=!<>]           
+        { printf("Operator                :%s\n", yytext); }
+
+/* ---- SEPARATORS ---- */
+[(){}[\],;]             
+        { printf("Separator               :%s\n", yytext); }
+
+/* ---- COMMENTS (ignored) ---- */
+"//".*                  { }
+"/*"([^*]|\*+[^/])*\*+"/" { }
+
+/* ---- WHITESPACE (ignored) ---- */
+[ \t\n]+                { }
+
+/* ---- ANY OTHER CHARACTER ---- */
+.                       { printf("Invalid Token           :%s\n", yytext); }
 
 %%
 
-{PP}                { printf("Preprocessor directive          :%s\n", yytext); }
+int yywrap() { return 0; }
 
-"int"|"float"|"char"|"return"|"if"|"else"|"while"|"for"
-                    { printf("Keyword                 :%s\n", yytext); }
-
-{ID}                { printf("Identifier              :%s\n", yytext); }
-
-"++"|"--"|"=="|"!="|"<="|">="|"&&"|"||"|":="
-                    { printf("Operator                :%s\n", yytext); }
-
-"="|"+"|"-"|"*"|"/"|"%"|"!"|"<"|">"
-                    { printf("Operator                :%s\n", yytext); }
-
-{FLOAT}             { printf("Number                  :%s\n", yytext); }
-{INT}               { printf("Number                  :%s\n", yytext); }
-
-\"([^\\\"]|\\.)*\"  { printf("String Literal          :%s\n", yytext); }
-
-";"|","|"("|")"|"{"|"}"|"["|"]"
-                    { printf("Separator               :%s\n", yytext); }
-
-[ \t\n]+            { }
-
-.                   { }
-
-%%
-
-int main(int argc,char *argv[])
-{
-    if(argc < 2){
-        printf("Usage: %s <file>\n", argv[0]);
-        exit(1);
-    }
-    FILE *fp = fopen(argv[1], "r");
-    if(!fp){
-        perror("Cannot open file");
-        exit(1);
-    }
-    yyin = fp;
+int main() {
     yylex();
-    fclose(fp);
     return 0;
 }
