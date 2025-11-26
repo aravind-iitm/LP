@@ -26,7 +26,7 @@ int main()
     {
         strcpy(operand,opcode);
         strcpy(opcode,label);
-        strcpy(label,"-");
+        strcpy(label,"  -  ");
     }
 
     if(strcmp(opcode,"START")==0)
@@ -40,7 +40,7 @@ int main()
         {
             strcpy(operand,opcode);
             strcpy(opcode,label);
-            strcpy(label,"-");
+            strcpy(label,"  -  ");
         }
 
     }
@@ -49,13 +49,12 @@ int main()
     {
         fprintf(f4,"%X\t%s\t%s\t%s\n",locctr,label,opcode,operand);
 
-        if(strcmp(label,"-")!=0 && strcmp(label,"")!=0)
+        if(strcmp(label,"  -  ")!=0 && strcmp(label,"")!=0)
         {
-            rewind(f3);
             char lab[100];
             int addr;
             int duplicate = 0;
-
+            rewind(f3);
             while (fscanf(f3, "%s %x", lab, &addr) != EOF)
             {
                 if (strcmp(label, lab) == 0)
@@ -73,9 +72,9 @@ int main()
 
         }
 
-        rewind(f2);
 
         found=0;
+        rewind(f2);
         while(fscanf(f2,"%s %s",code,mnemonic) !=EOF)
         { 
             if(strcmp(opcode,code)==0)
@@ -85,6 +84,7 @@ int main()
                 break;
             }
         }
+
         if(!found)
         {
             if(strcmp(opcode,"WORD")==0)
@@ -119,7 +119,7 @@ int main()
         {
             strcpy(operand,opcode);
             strcpy(opcode,label);
-            strcpy(label,"-");
+            strcpy(label,"  -  ");
         }
 
     }
